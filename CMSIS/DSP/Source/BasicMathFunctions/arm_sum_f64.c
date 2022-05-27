@@ -26,7 +26,7 @@
  * limitations under the License.
  */
 
-#include "dsp/statistics_functions.h"
+#include "dsp/basic_math_functions.h"
 
 /**
   @ingroup groupMath
@@ -45,6 +45,50 @@
   @param[out]    pResult    sum value returned here.
   @return        none
  */
+#if defined(ARM_MATH_NEON)
+void arm_sum_f64(
+  const float64_t * pSrc,
+        uint32_t blockSize,
+        float64_t * pResult)
+{
+        uint32_t blkCnt;                               /* Loop counter */
+        float64x2_t vSum = vdupq_n_f64(0.0f);
+        float64_t sum = 0.;                            /* Temporary result storage */
+
+  /* Initialize blkCnt with number of samples */
+    blkCnt = blockSize >> 1U;
+
+
+  while (blkCnt > 0U)
+  {
+    /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
+      float64x2_t afterLoad ;
+      afterLoad = vld1q_f64(pSrc);
+      vSum = vaddq_f64(vSum, afterLoad);
+
+    /* Decrement loop counter */
+    blkCnt--;
+    pSrc += 2;
+  }
+    sum = vaddvq_f64(vSum);
+    
+    /* Tail */
+    blkCnt = blockSize & 0x1;
+
+    while (blkCnt > 0U)
+    {
+      /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
+      sum += *pSrc++;
+  
+      /* Decrement loop counter */
+      blkCnt--;
+    }
+
+  /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1])  */
+  /* Store result to destination */
+  *pResult = sum;
+}
+#else
 void arm_sum_f64(
   const float64_t * pSrc,
         uint32_t blockSize,
@@ -69,6 +113,9 @@ void arm_sum_f64(
   /* Store result to destination */
   *pResult = sum;
 }
+
+#endif
+
 
 /**
   @} end of sum group
