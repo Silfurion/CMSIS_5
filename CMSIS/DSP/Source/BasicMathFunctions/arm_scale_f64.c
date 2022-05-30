@@ -45,7 +45,56 @@
   @param[in]     blockSize  number of samples in each vector
   @return        none
  */
+#if defined(ARM_MATH_NEON)
+void arm_scale_f64(
+  const float64_t *pSrc,
+        float64_t scale,
+        float64_t *pDst,
+        uint32_t blockSize)
+{
+    uint32_t blkCnt;                               /* Loop counter */
+    float64x2x2_t pDstVect ;
+    float64x2_t pSrcVect ;
 
+  /* Initialize blkCnt with number of samples */
+  blkCnt = blockSize >> 2U;
+
+  while (blkCnt > 0U)
+  {
+    /* C = A * scale */
+      for (int i = 0 ; i < 2 ; i++){
+      pSrcVect = vld1q_f64(pSrc+2*i);
+    /* Scale input and store result in destination buffer. */
+          pDstVect.val[i] = vmulq_n_f64(pSrcVect, scale);
+      }
+      vst1q_f64(pDst, pDstVect.val[0]);
+      vst1q_f64(pDst+2, pDstVect.val[1]);
+      
+
+    /* Decrement loop counter */
+      pSrc += 4;
+      pDst += 4;
+    blkCnt--;
+  }
+    
+
+  blkCnt = blockSize & 0x3;
+  while (blkCnt > 0U)
+    {
+      /* C = A * scale */
+
+      /* Scale input and store result in destination buffer. */
+      *pDst++ = (*pSrc++) * scale;
+
+      /* Decrement loop counter */
+      blkCnt--;
+    }
+
+
+}
+
+
+#else
 void arm_scale_f64(
   const float64_t *pSrc,
         float64_t scale,
@@ -69,6 +118,7 @@ void arm_scale_f64(
   }
 
 }
+#endif
 
 /**
   @} end of BasicScale group

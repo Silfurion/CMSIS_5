@@ -51,18 +51,18 @@ void arm_sum_f64(
         uint32_t blockSize,
         float64_t * pResult)
 {
-        uint32_t blkCnt;                               /* Loop counter */
-        float64x2_t vSum = vdupq_n_f64(0.0f);
-        float64_t sum = 0.;                            /* Temporary result storage */
+    uint32_t blkCnt;                               /* Loop counter */
+    float64x2_t vSum = vdupq_n_f64(0.0f);
+    float64_t sum = 0.;                            /* Temporary result storage */
 
   /* Initialize blkCnt with number of samples */
     blkCnt = blockSize >> 1U;
-
+    float64x2_t afterLoad ;
 
   while (blkCnt > 0U)
   {
     /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
-      float64x2_t afterLoad ;
+
       afterLoad = vld1q_f64(pSrc);
       vSum = vaddq_f64(vSum, afterLoad);
 
@@ -73,7 +73,7 @@ void arm_sum_f64(
     sum = vaddvq_f64(vSum);
     
     /* Tail */
-    blkCnt = blockSize & 0x1;
+    blkCnt = blockSize%2 ;
 
     while (blkCnt > 0U)
     {
