@@ -781,7 +781,7 @@ uint32_t blockSize)
 
       /* Tail */
       i = numTaps & 3;
-      x2 = vld1q_f32(px + 8);
+      //x2 = vld1q_f32(px + 8); /this line make crash the program
 
       /* Perform the multiply-accumulates */
       switch(i)
