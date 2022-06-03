@@ -5,7 +5,7 @@
   <description>CMSIS (Common Microcontroller Software Interface Standard)</description>
   <vendor>ARM</vendor>
   <!-- <license>license.txt</license> -->
-  <url>http://www.keil.com/pack/</url>
+  <url>https://www.keil.com/pack/</url>
 
   <releases>
     <release version="5.9.1">
@@ -2233,7 +2233,7 @@ and 8-bit Java bytecodes in Jazelle state.
     </component>
 
     <!-- CMSIS-DSP component -->
-    <component Cclass="CMSIS" Cgroup="DSP" Cvariant="Source"  Cversion="1.10.0" isDefaultVariant="true" condition="CMSIS DSP">
+    <component Cclass="CMSIS" Cgroup="DSP" Cvariant="Source"  Cversion="1.11.0" isDefaultVariant="true" condition="CMSIS DSP">
       <description>CMSIS-DSP Library for Cortex-M, SC000, and SC300</description>
       <files>
         <!-- CPU independent -->
