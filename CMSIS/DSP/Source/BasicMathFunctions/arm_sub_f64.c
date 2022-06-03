@@ -3,8 +3,8 @@
  * Title:        arm_sub_f64.c
  * Description:  Floating-point vector subtraction
  *
- * $Date:        13 September 2021
- * $Revision:    V1.10.0
+ * $Date:        03 June 2022
+ * $Revision:    V1.10.1
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
@@ -53,55 +53,52 @@ void arm_sub_f64(
         float64_t * pDst,
         uint32_t blockSize)
 {
-  uint32_t blkCnt;                               /* Loop counter */
-  float64x2_t pSrcAVect ;
-
-  float64x2_t pSrcBVect ;
+    uint32_t blkCnt;                               /* Loop counter */
+  
+    /* Initialize Neon Buffer */
+    float64x2_t pSrcAVect ;
+    float64x2_t pSrcBVect ;
+    float64x2x2_t pDestVect ;
 
   
 
 
-  /* Initialize blkCnt with number of samples */
-  blkCnt = blockSize >> 2U;
-    
-    float64x2x2_t pDestVect ;
+    /* Initialize blkCnt with number of samples */
+    blkCnt = blockSize >> 2U;
+    while (blkCnt > 0U)
+    {
+        /* C = A - B */
+        for (int i = 0 ; i < 2 ; i++){
+            /*Load source value in Neon buffers*/
+            pSrcAVect = vld1q_f64(pSrcA+2*i);
+            pSrcBVect = vld1q_f64(pSrcB+2*i);
+            
+            /* Subtract */
+            pDestVect.val[i] = vsubq_f64(pSrcAVect, pSrcBVect);
+        }
+        /* Store the result in destination */
+        vst1q_f64(pDst, pDestVect.val[0]);
+        vst1q_f64(pDst+2, pDestVect.val[1]);
+        
+        /* Increment pointer */
+        pSrcA += 4 ;
+        pSrcB += 4 ;
+        pDst += 4;
 
-    
-
-  while (blkCnt > 0U)
-  {
-    /* C = A - B */
-      for (int i = 0 ; i < 2 ; i++){
-          pSrcAVect = vld1q_f64(pSrcA+2*i);
-          pSrcBVect = vld1q_f64(pSrcB+2*i);
-
-          pDestVect.val[i] = vsubq_f64(pSrcAVect, pSrcBVect);
-      }
-      vst1q_f64(pDst, pDestVect.val[0]);
-
-      vst1q_f64(pDst+2, pDestVect.val[1]);
-
-      
-
-    /* Subtract and store result in destination buffer. */
-      pSrcA += 4 ;
-      pSrcB += 4 ;
-      pDst += 4;
-
-    /* Decrement loop counter */
-    blkCnt--;
-  }
+        /* Decrement loop counter */
+        blkCnt--;
+    }
     blkCnt = blockSize & 0x3;
     
     while (blkCnt > 0U)
     {
       /* C = A - B */
 
-      /* Subtract and store result in destination buffer. */
-      *pDst++ = (*pSrcA++) - (*pSrcB++);
+        /* Subtract and store result in destination buffer. */
+        *pDst++ = (*pSrcA++) - (*pSrcB++);
 
-      /* Decrement loop counter */
-      blkCnt--;
+        /* Decrement loop counter */
+        blkCnt--;
     }
 
 }

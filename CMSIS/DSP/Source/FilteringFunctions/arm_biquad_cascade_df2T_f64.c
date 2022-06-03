@@ -3,8 +3,8 @@
  * Title:        arm_biquad_cascade_df2T_f64.c
  * Description:  Processing function for floating-point transposed direct form II Biquad cascade filter
  *
- * $Date:        23 April 2021
- * $Revision:    V1.9.0
+ * $Date:        03 June 2022
+ * $Revision:    V1.9.1
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
@@ -147,9 +147,8 @@ void arm_biquad_cascade_df2T_f64(
     uint32_t  sample, stage = S->numStages; /*  loop counters             */
     float64_t const *pCurCoeffs =          /*  coefficient pointer       */
                 (float64_t const *) S->pCoeffs;
-    float64x2_t b01Coeffs,b02Coeffs, a0Coeffs;           /*  Coefficients vector       */
-    float64x2_t b11Coeffs,b12Coeffs ,a1Coeffs;           /*  Modified coef. vector     */
-    float64x2_t state,state2;/*  State vector*/
+    float64x2_t b0Coeffs, a0Coeffs;           /*  Coefficients vector       */
+    float64x2_t state;                        /*  State vector*/
     float64x2_t d2Alone ;
     //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 0);
     //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 1);
@@ -163,22 +162,45 @@ void arm_biquad_cascade_df2T_f64(
 
        /* Reading the coefficients */
         b0 = *pCurCoeffs++ ;
-        b01Coeffs = vld1q_f64(pCurCoeffs);
+        b0Coeffs = vld1q_f64(pCurCoeffs);
         pCurCoeffs += 2 ;
         a0Coeffs = vld1q_f64(pCurCoeffs);
         pCurCoeffs +=2 ;
         
         state = vld1q_f64(pState);
         
-     /* Loop unrolling: Compute 16 outputs at a time */
        sample = blockSize >> 0U;
         while (sample > 0U) {
+            
+            /* y[n] = b0 * x[n] + d1 */
+            /* d1 = b1 * x[n] + a1 * y[n] + d2 */
+            /* d2 = b2 * x[n] + a2 * y[n] */
+            
             Xn0 = *pIn++ ;
+            
+            /* Calculation of acc0*/
             acc0 = b0*Xn0+vgetq_lane_f64(state, 0);
+            
+            
+            /*
+            *  final                  initial
+            *  state   b0Coeffs        state  a0Coeffs
+            *   |        |              |        |
+            *   __       __             __       __
+            *  /  \     /  \           /  \     /  \
+            * | d1 | = | b1 | * Xn0 + | d2 | + | a1 | x acc0
+            * | d2 |   | b2 |         | 0  |   | a2 |
+            *  \__/     \__/           \__/     \__/
+            */
+            
+            /* state -> initial state (see above) */
             state = vsetq_lane_f64(vgetq_lane_f64(state, 1), state, 0);
             state = vsetq_lane_f64(0.0f, state , 1);
-            state = vfmaq_n_f64(state, b01Coeffs, Xn0);
+            
+            /* Calculation of final state */
+            state = vfmaq_n_f64(state, b0Coeffs, Xn0);
             state = vfmaq_n_f64(state, a0Coeffs, acc0);
+            
             //state = vaddq_f64(state, d2Alone);
             *pOut++ = acc0 ;
             sample--;

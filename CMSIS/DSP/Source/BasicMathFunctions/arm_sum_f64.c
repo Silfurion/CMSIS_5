@@ -3,8 +3,8 @@
  * Title:        arm_sum_f64.c
  * Description:  Sum value of a floating-point vector
  *
- * $Date:        24 May 2022
- * $Revision:    V1.0.0
+ * $Date:        03 June 2022
+ * $Revision:    V1.0.1
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
@@ -52,22 +52,27 @@ void arm_sum_f64(
         float64_t * pResult)
 {
     uint32_t blkCnt;                               /* Loop counter */
+    
+    /*Neon buffers*/
     float64x2_t vSum = vdupq_n_f64(0.0f);
+    float64x2_t afterLoad ;
+    
     float64_t sum = 0.;                            /* Temporary result storage */
 
   /* Initialize blkCnt with number of samples */
     blkCnt = blockSize >> 1U;
-    float64x2_t afterLoad ;
+
 
   while (blkCnt > 0U)
   {
     /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
-
+      
       afterLoad = vld1q_f64(pSrc);
       vSum = vaddq_f64(vSum, afterLoad);
 
     /* Decrement loop counter */
     blkCnt--;
+      
     pSrc += 2;
   }
     sum = vaddvq_f64(vSum);

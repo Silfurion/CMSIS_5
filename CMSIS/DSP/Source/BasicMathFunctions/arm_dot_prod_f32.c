@@ -3,8 +3,8 @@
  * Title:        arm_dot_prod_f32.c
  * Description:  Floating-point dot product
  *
- * $Date:        05 October 2021
- * $Revision:    V1.9.1
+ * $Date:        03 June 2022
+ * $Revision:    V1.9.2
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
@@ -139,22 +139,20 @@ void arm_dot_prod_f32(
     /* Compute 4 outputs at a time */
     blkCnt = blockSize >> 2U;
 
-    vec1 = vld1q_f32(pSrcA);
-    vec2 = vld1q_f32(pSrcB);
+
 
     while (blkCnt > 0U)
     {
         /* C = A[0]*B[0] + A[1]*B[1] + A[2]*B[2] + ... + A[blockSize-1]*B[blockSize-1] */
         /* Calculate dot product and then store the result in a temporary buffer. */
-        
+        vec1 = vld1q_f32(pSrcA);
+        vec2 = vld1q_f32(pSrcB);
 	      accum = vmlaq_f32(accum, vec1, vec2);
 	
         /* Increment pointers */
         pSrcA += 4;
         pSrcB += 4; 
 
-        vec1 = vld1q_f32(pSrcA);
-        vec2 = vld1q_f32(pSrcB);
         
         /* Decrement the loop counter */
         blkCnt--;

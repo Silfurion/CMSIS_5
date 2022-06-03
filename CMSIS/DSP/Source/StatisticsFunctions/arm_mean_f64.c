@@ -3,8 +3,8 @@
  * Title:        arm_mean_f64.c
  * Description:  Mean value of a floating-point vector
  *
- * $Date:        13 September 2021
- * $Revision:    V1.10.0
+ * $Date:        03 June 2022
+ * $Revision:    V1.10.1
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
@@ -70,6 +70,7 @@ void arm_mean_f64(
 
     /* Decrement loop counter */
     blkCnt--;
+      
     pSrc += 2;
   }
     sum = vaddvq_f64(vSum);
