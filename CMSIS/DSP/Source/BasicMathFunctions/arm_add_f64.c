@@ -45,7 +45,54 @@
   @param[in]     blockSize  number of samples in each vector
   @return        none
  */
+#if defined(ARM_MATH_NEON)
+void arm_add_f64(
+  const float64_t * pSrcA,
+  const float64_t * pSrcB,
+        float64_t * pDst,
+        uint32_t blockSize)
+{
+  uint32_t blkCnt;                               /* Loop counter */
+    float64x2_t pSrcAV;
+    float64x2_t pSrcBV;
+    float64x2x2_t pDestV;
 
+  /* Initialize blkCnt with number of samples */
+  blkCnt = blockSize >> 2U;
+
+  while (blkCnt > 0U)
+  {
+    /* C = A + B */
+
+    /* Add and store result in destination buffer. */
+      for(int i = 0 ; i< 2 ; i++){
+          pSrcAV = vld1q_f64(pSrcA+2*i);
+          pSrcBV = vld1q_f64(pSrcB+2*i);
+          pDestV.val[i] = vaddq_f64(pSrcAV, pSrcBV);
+      }
+      
+      vst1q_f64(pDst,pDestV.val[0]);
+      vst1q_f64(pDst+2, pDestV.val[1]);
+      pSrcA+=4;
+      pSrcB+=4;
+      pDst+=4;
+
+    /* Decrement loop counter */
+    blkCnt--;
+  }
+    blkCnt = blockSize & 3;
+    
+    while( blkCnt < 0U){
+        /* Add and store result in destination buffer. */
+        *pDst++ = (*pSrcA++) + (*pSrcB++);
+
+        /* Decrement loop counter */
+        blkCnt--;
+    }
+
+}
+
+#else
 void arm_add_f64(
   const float64_t * pSrcA,
   const float64_t * pSrcB,
@@ -69,7 +116,7 @@ void arm_add_f64(
   }
 
 }
-
+#endif
 /**
   @} end of BasicAdd group
  */

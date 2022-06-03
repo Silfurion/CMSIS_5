@@ -45,7 +45,49 @@
   @param[in]     blockSize  number of samples in each vector
   @return        none
  */
+/*
+#if defined(ARM_MATH_NEON)
+void arm_abs_f64(
+  const float64_t * pSrc,
+        float64_t * pDst,
+        uint32_t blockSize)
+{
+  uint32_t blkCnt;
+    float64x2x2_t pDstV ;
+    float64x2_t pSrcV;
 
+
+
+  blkCnt = blockSize >> 2U;
+
+  while (blkCnt > 0U)
+  {
+      for (int i = 0 ; i< 2 ; i ++)
+      {
+          pSrcV = vld1q_f64(pSrc+2*i);
+          pDstV.val[i] = vabsq_f64(pSrcV);
+      }
+      vst1q_f64(pDst, pDstV.val[0]);
+      vst1q_f64(pDst+2, pDstV.val[1]);
+
+      
+      pDst += 4 ;
+      pSrc+=4;
+
+  
+    blkCnt--;
+  }
+    
+    blkCnt = blockSize & 3 ;
+    while(blkCnt > 0U){
+        *pDst++ = fabs(*pSrc++);
+        blkCnt--;
+    }
+
+}
+
+#else
+ */
 void arm_abs_f64(
   const float64_t * pSrc,
         float64_t * pDst,
@@ -68,6 +110,8 @@ void arm_abs_f64(
   }
 
 }
+//#endif
+
 
 /**
   @} end of BasicAbs group
