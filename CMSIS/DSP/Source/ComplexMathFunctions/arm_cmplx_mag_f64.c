@@ -29,72 +29,127 @@
 #include "dsp/complex_math_functions.h"
 
 /**
-  @ingroup groupCmplxMath
+ @ingroup groupCmplxMath
  */
 
 /**
-  @defgroup cmplx_mag Complex Magnitude
-
-  Computes the magnitude of the elements of a complex data vector.
-
-  The <code>pSrc</code> points to the source data and
-  <code>pDst</code> points to the where the result should be written.
-  <code>numSamples</code> specifies the number of complex samples
-  in the input array and the data is stored in an interleaved fashion
-  (real, imag, real, imag, ...).
-  The input array has a total of <code>2*numSamples</code> values;
-  the output array has a total of <code>numSamples</code> values.
-
-  The underlying algorithm is used:
-
-  <pre>
-  for (n = 0; n < numSamples; n++) {
-      pDst[n] = sqrt(pSrc[(2*n)+0]^2 + pSrc[(2*n)+1]^2);
-  }
-  </pre>
-
-  There are separate functions for floating-point, Q15, and Q31 data types.
+ @defgroup cmplx_mag Complex Magnitude
+ 
+ Computes the magnitude of the elements of a complex data vector.
+ 
+ The <code>pSrc</code> points to the source data and
+ <code>pDst</code> points to the where the result should be written.
+ <code>numSamples</code> specifies the number of complex samples
+ in the input array and the data is stored in an interleaved fashion
+ (real, imag, real, imag, ...).
+ The input array has a total of <code>2*numSamples</code> values;
+ the output array has a total of <code>numSamples</code> values.
+ 
+ The underlying algorithm is used:
+ 
+ <pre>
+ for (n = 0; n < numSamples; n++) {
+ pDst[n] = sqrt(pSrc[(2*n)+0]^2 + pSrc[(2*n)+1]^2);
+ }
+ </pre>
+ 
+ There are separate functions for floating-point, Q15, and Q31 data types.
  */
 
 /**
-  @addtogroup cmplx_mag
-  @{
+ @addtogroup cmplx_mag
+ @{
  */
 
 /**
-  @brief         Floating-point complex magnitude.
-  @param[in]     pSrc        points to input vector
-  @param[out]    pDst        points to output vector
-  @param[in]     numSamples  number of samples in each vector
-  @return        none
+ @brief         Floating-point complex magnitude.
+ @param[in]     pSrc        points to input vector
+ @param[out]    pDst        points to output vector
+ @param[in]     numSamples  number of samples in each vector
+ @return        none
  */
+
+#if defined(ARM_MATH_NEON)
 void arm_cmplx_mag_f64(
-  const float64_t * pSrc,
-        float64_t * pDst,
-        uint32_t numSamples)
+                       const float64_t * pSrc,
+                       float64_t * pDst,
+                       uint32_t numSamples)
 {
-  uint32_t blkCnt;                               /* loop counter */
-  float64_t real, imag;                      /* Temporary variables to hold input values */
-
-  /* Initialize blkCnt with number of samples */
-  blkCnt = numSamples;
-
-  while (blkCnt > 0U)
-  {
-    /* C[0] = sqrt(A[0] * A[0] + A[1] * A[1]) */
-
-    real = *pSrc++;
-    imag = *pSrc++;
-
-    /* store result in destination buffer. */
-    *pDst++ = sqrt((real * real) + (imag * imag));
-
-    /* Decrement loop counter */
-    blkCnt--;
-  }
-
+    uint32_t blkCnt;                               /* loop counter */
+    float64x2x2_t  vect;                      /* Temporary variables to hold input values */
+    float64x2_t realV,imagV ;
+    float64x2_t resultAdd;
+    
+    float64_t temp ;
+    
+    
+    /* Initialize blkCnt with number of samples */
+    blkCnt = numSamples >> 1U;
+    
+    while (blkCnt > 0U)
+    {
+        /* C[0] = sqrt(A[0] * A[0] + A[1] * A[1]) */
+        vect = vld2q_f64(pSrc);
+        realV = vmulq_f64(vect.val[0], vect.val[0]);
+        imagV = vmulq_f64(vect.val[1], vect.val[1]);
+        resultAdd = vaddq_f64(realV, imagV);
+        vst1q_f64(pDst, vsqrtq_f64(resultAdd));
+        pSrc+=4;
+        pDst+=2;
+        /* store result in destination buffer. */
+        
+        /* Decrement loop counter */
+        blkCnt--;
+    }
+    float64_t real, imag;                      /* Temporary variables to hold input values */
+    
+    /* Initialize blkCnt with number of samples */
+    blkCnt = numSamples & 1;
+    
+    while (blkCnt > 0U)
+    {
+        /* C[0] = sqrt(A[0] * A[0] + A[1] * A[1]) */
+        
+        real = *pSrc++;
+        imag = *pSrc++;
+        
+        /* store result in destination buffer. */
+        *pDst++ = sqrt((real * real) + (imag * imag));
+        
+        /* Decrement loop counter */
+        blkCnt--;
+    }
 }
 
+#else
+void arm_cmplx_mag_f64(
+                       const float64_t * pSrc,
+                       float64_t * pDst,
+                       uint32_t numSamples)
+{
+    uint32_t blkCnt;                               /* loop counter */
+    float64_t real, imag;                      /* Temporary variables to hold input values */
+    
+    /* Initialize blkCnt with number of samples */
+    blkCnt = numSamples;
+    
+    while (blkCnt > 0U)
+    {
+        /* C[0] = sqrt(A[0] * A[0] + A[1] * A[1]) */
+        
+        real = *pSrc++;
+        imag = *pSrc++;
+        
+        /* store result in destination buffer. */
+        *pDst++ = sqrt((real * real) + (imag * imag));
+        
+        /* Decrement loop counter */
+        blkCnt--;
+    }
+    
+}
+#endif
+
 /**
-  @} end of cmplx_mag group
+ @} end of cmplx_mag group
  */

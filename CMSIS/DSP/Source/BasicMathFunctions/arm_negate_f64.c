@@ -3,8 +3,8 @@
  * Title:        arm_negate_f64.c
  * Description:  Negates floating-point vectors
  *
- * $Date:        13 September 2021
- * $Revision:    V1.10.0
+ * $Date:        03 June 2022
+ * $Revision:    V1.10.1
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
@@ -44,7 +44,48 @@
   @param[in]     blockSize  number of samples in each vector.
   @return        none
  */
+/*#if defined(ARM_MATH_NEON)
+void arm_negate_f64(
+  const float64_t * pSrc,
+        float64_t * pDst,
+        uint32_t blockSize)
+{
+  uint32_t blkCnt;
 
+    float64x2_t pSrcV ;
+    float64x2x4_t pDestV;
+  blkCnt = blockSize >> 3U;
+
+  while (blkCnt > 0U)
+  {
+      for(int i = 0 ; i<4 ; i++){
+          pSrcV = vld1q_f64(pSrc+2*i);
+          pDestV.val[i] = vnegq_f64(pSrcV);
+      }
+      vst1q_f64(pDst, pDestV.val[0]);
+      vst1q_f64(pDst+2, pDestV.val[1]);
+      vst1q_f64(pDst+4, pDestV.val[2]);
+      vst1q_f64(pDst+6, pDestV.val[3]);
+      pDst+=8;
+      pSrc+=8;
+
+    blkCnt--;
+  }
+    
+    blkCnt = blockSize & 7;
+
+    while (blkCnt > 0U)
+    {
+
+      *pDst++ = -*pSrc++;
+
+      blkCnt--;
+    }
+    
+
+}
+#else
+ */
 void arm_negate_f64(
   const float64_t * pSrc,
         float64_t * pDst,
@@ -67,6 +108,7 @@ void arm_negate_f64(
   }
 
 }
+//#endif
 
 /**
   @} end of BasicNegate group

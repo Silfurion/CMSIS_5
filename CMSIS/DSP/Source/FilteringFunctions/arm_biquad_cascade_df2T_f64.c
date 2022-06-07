@@ -200,8 +200,8 @@ void arm_biquad_cascade_df2T_f64(
             /* Calculation of final state */
             state = vfmaq_n_f64(state, b0Coeffs, Xn0);
             state = vfmaq_n_f64(state, a0Coeffs, acc0);
-            
-            //state = vaddq_f64(state, d2Alone);
+                    	
+            state = vaddq_f64(state, d2Alone);
             *pOut++ = acc0 ;
             sample--;
         }
