@@ -78,7 +78,7 @@ void arm_sum_f64(
     sum = vaddvq_f64(vSum);
     
     /* Tail */
-    blkCnt = blockSize%2 ;
+    blkCnt = blockSize & 1 ;
 
     while (blkCnt > 0U)
     {
@@ -97,7 +97,7 @@ void arm_sum_f64(
 void arm_sum_f64(
   const float64_t * pSrc,
         uint32_t blockSize,
-        float64_t * pResult)
+        float64_t *  pResult)
 {
         uint32_t blkCnt;                               /* Loop counter */
         float64_t sum = 0.;                            /* Temporary result storage */

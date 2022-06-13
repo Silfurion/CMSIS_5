@@ -90,7 +90,7 @@ void arm_add_f64(
     /* Tail */
     blkCnt = blockSize & 3;
     
-    while( blkCnt < 0U)
+    while( blkCnt > 0U)
     {
         /* Add and store result in destination buffer. */
         *pDst++ = (*pSrcA++) + (*pSrcB++);

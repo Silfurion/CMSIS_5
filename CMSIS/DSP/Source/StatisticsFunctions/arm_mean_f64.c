@@ -74,7 +74,18 @@ void arm_mean_f64(
     pSrc += 2;
   }
     sum = vaddvq_f64(vSum);
-    *pResult = sum/blockSize;
+    
+    blkCnt = blockSize & 1;
+
+    while (blkCnt > 0U)
+    {
+      /* C = (A[0] + A[1] + A[2] + ... + A[blockSize-1]) */
+      sum += *pSrc++;
+
+      /* Decrement loop counter */
+      blkCnt--;
+    }
+    *pResult = (sum/blockSize);
 }
 #else
 void arm_mean_f64(
