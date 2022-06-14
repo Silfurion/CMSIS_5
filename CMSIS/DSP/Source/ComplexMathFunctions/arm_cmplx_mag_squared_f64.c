@@ -51,10 +51,35 @@ void arm_cmplx_mag_squared_f64(
 {
         uint32_t blkCnt;                               /* Loop counter */
         float64_t real, imag;                          /* Temporary input variables */
+    
+    
+    
+#if defined(ARM_MATH_NEON)
+    float64x2x2_t CmplxV ;
+    float64x2_t realV ,imagV , resultAddV ;
+    
+    blkCnt = numSamples >> 1U;
+    
+    while(blkCnt > 0U)
+    {
+        CmplxV = vld2q_f64(pSrc);
+        realV = vmulq_f64(CmplxV.val[0], CmplxV.val[0]);
+        imagV = vmulq_f64(CmplxV.val[1], CmplxV.val[1]);
+        resultAddV = vaddq_f64(realV, imagV);
+        vst1q_f64(pDst, resultAddV);
+        pDst += 2 ;
+        pSrc += 4 ;
+        blkCnt--;
+    }
+    
+    
+    
+    blkCnt = numSamples & 1 ;
+#else
 
   /* Initialize blkCnt with number of samples */
   blkCnt = numSamples;
-
+#endif
   while (blkCnt > 0U)
   {
     /* C[0] = (A[0] * A[0] + A[1] * A[1]) */
