@@ -65,6 +65,9 @@ void arm_correlate_f64(
         uint32_t j, k, count, blkCnt;                  /* Loop counters */
         uint32_t outBlockSize;                         /* Loop counter */
         int32_t inc = 1;                               /* Destination address modifier */
+#if defined(ARM_MATH_NEON)
+  float64x2_t sumV,pxV,pyV ;
+#endif
 
   /* The algorithm implementation is based on the lengths of the inputs. */
   /* srcB is always made to slide across srcA. */
@@ -160,34 +163,27 @@ void arm_correlate_f64(
    * ----------------------*/
 
   /* The first stage starts here */
+  while (blockSize1 > 0U)
+  {
+    /* Accumulator is made zero for every iteration */
+    sum = 0.;
 #if defined(ARM_MATH_NEON)
-    float64x2_t sumV , pxV , pyV ;
     sumV = vdupq_n_f64(0.0f);
-#endif
+    k = count >> 1U ;
     
-    while(blockSize1 > 0U)
+    while(k > 0U)
     {
-        sum = 0 ;
-#if defined(ARM_MATH_NEON)
-        sumV = vdupq_n_f64(0.0f);
-        
-        k = count >> 1U ;
-        
-        while(k > 0U)
-        {
-            pxV = vld1q_f64(px);
-            pyV = vld1q_f64(py);
-            sumV = vmlaq_f64(sumV, pxV, pyV);
-            px += 2 ;
-            py += 2 ;
-            k-- ;
-            
-        }
-        sum = vaddvq_f64(sumV);
-        k = count & 1 ;
-        
-    /* Initialize k with number of samples */
+      pxV = vld1q_f64(px);
+      pyV = vld1q_f64(py);
+      sumV = vmlaq_f64(sumV, pxV, pyV);
+      px+=2;
+      py+=2;
+      k--;
+    }
+    sum =vaddvq_f64(sumV);
+    k = count & 1 ;
 #else
+    /* Initialize k with number of samples */
     k = count;
 #endif
     while (k > 0U)
@@ -201,6 +197,7 @@ void arm_correlate_f64(
     }
 
     /* Store the result in the accumulator in the destination buffer. */
+
     *pOut = sum;
     /* Destination pointer is updated according to the address modifier, inc */
     pOut += inc;
@@ -214,8 +211,8 @@ void arm_correlate_f64(
 
     /* Decrement loop counter */
     blockSize1--;
-  }
 
+  }
 
   /* --------------------------
    * Initializations of stage2
@@ -251,51 +248,52 @@ void arm_correlate_f64(
     while (blkCnt > 0U)
     {
       /* Accumulator is made zero for every iteration */
-        sum = 0;
+      sum = 0.;
 #if defined(ARM_MATH_NEON)
-        sumV = vdupq_n_f64(0.0f);
-        
-        k= srcBLen >> 1U ;
-        
-        while(k > 0U)
-        {
-            pxV = vld1q_f64( px);
-            pyV = vld1q_f64(py);
-            sumV = vmlaq_f64(sumV, pxV, pyV);
-            k-- ;
-        }
-        sum = vaddvq_f64(sumV);
-        k = srcBLen & 1;
+      sumV = vdupq_n_f64(0.0f);
+      k = srcBLen >> 1U ;
+      while(k > 0U)
+      {
+        pxV = vld1q_f64(px);
+        pyV = vld1q_f64(py);
+        sumV = vmlaq_f64(sumV, pxV, pyV);
+        px+=2;
+        py+=2;
+        k--;
+      }
+      sum =vaddvq_f64(sumV);
+      k = srcBLen & 1 ;
+      
 #else
-        k = srcBLen;
+
+      /* Initialize blkCnt with number of samples */
+      k = srcBLen;
 #endif
-
-        while (k > 0U)
-        {
-          /* Perform the multiply-accumulate */
-          sum += *px++ * *py++;
-
-          /* Decrement the loop counter */
-          k--;
-        }
-
-        /* Store the result in the accumulator in the destination buffer. */
-        *pOut = sum;
-
-        /* Destination pointer is updated according to the address modifier, inc */
-        pOut += inc;
-
-        /* Increment the pointer pIn1 index, count by 1 */
-        count++;
-
-        /* Update the inputA and inputB pointers for next MAC calculation */
-        px = pIn1 + count;
-        py = pIn2;
+      while (k > 0U)
+      {
+        /* Perform the multiply-accumulate */
+        sum += *px++ * *py++;
 
         /* Decrement the loop counter */
-        blkCnt--;
+        k--;
+      }
+
+      /* Store the result in the accumulator in the destination buffer. */
+      *pOut = sum;
+
+      /* Destination pointer is updated according to the address modifier, inc */
+      pOut += inc;
+
+      /* Increment the pointer pIn1 index, count by 1 */
+      count++;
+
+      /* Update the inputA and inputB pointers for next MAC calculation */
+      px = pIn1 + count;
+      py = pIn2;
+
+      /* Decrement the loop counter */
+      blkCnt--;
     }
-        
   }
   else
   {
@@ -308,19 +306,25 @@ void arm_correlate_f64(
       /* Accumulator is made zero for every iteration */
       sum = 0.;
 #if defined(ARM_MATH_NEON)
-        sumV = vdupq_n_f64(0.0f);
-        k = srcBLen >> 1U ;
-        while(k > 0U)
-        {
-            pxV = vld1q_f64( px);
-            pyV = vld1q_f64(py);
-            sumV = vmlaq_f64(sumV, pxV, pyV);
-            k-- ;
-        }
+      sumV = vdupq_n_f64(0.0f);
+      k = srcBLen >> 1U ;
+      while(k > 0U)
+      {
+        pxV = vld1q_f64(px);
+        pyV = vld1q_f64(py);
+        sumV = vmlaq_f64(sumV, pxV, pyV);
+        px+=2;
+        py+=2;
+        k--;
+      }
+      sum =vaddvq_f64(sumV);
+      k = srcBLen & 1 ;
+      
 #else
+
+      /* Loop over srcBLen */
       k = srcBLen;
 #endif
-
       while (k > 0U)
       {
         /* Perform the multiply-accumulate */
@@ -378,10 +382,26 @@ void arm_correlate_f64(
   {
     /* Accumulator is made zero for every iteration */
     sum = 0.;
+#if defined(ARM_MATH_NEON)
+    sumV = vdupq_n_f64(0.0f);
+    k = count >> 1U ;
+    
+    while(k > 0U)
+    {
+      pxV = vld1q_f64(px);
+      pyV = vld1q_f64(py);
+      sumV = vmlaq_f64(sumV, pxV, pyV);
+      px+=2;
+      py+=2;
+      k--;
+    }
+    sum =vaddvq_f64(sumV);
+    k = count & 1 ;
+#else
 
     /* Initialize blkCnt with number of samples */
     k = count;
-
+#endif
     while (k > 0U)
     {
       /* Perform the multiply-accumulate */
