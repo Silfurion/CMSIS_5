@@ -52,8 +52,20 @@ void arm_fill_f64(
   uint32_t blkCnt;                               /* Loop counter */
 
   /* Initialize blkCnt with number of samples */
+#if defined(ARM_MATH_NEON)
+  float64x2_t ValueV ;
+  ValueV = vdupq_n_f64(value);
+  blkCnt = blockSize >> 1U ;
+  while(blkCnt > 0U)
+  {
+    vst1q_f64(pDst, ValueV);
+    pDst+=2;
+    blkCnt--;
+  }
+  blkCnt = blockSize & 1;
+#else
   blkCnt = blockSize;
-
+#endif
   while (blkCnt > 0U)
   {
     /* C = value */

@@ -29,6 +29,9 @@
 #include "dsp/statistics_functions.h"
 #include <limits.h>
 #include <math.h>
+#if defined(ARM_MATH_NEON)
+#include "arm_vec_math.h"
+#endif
 
 /**
  * @addtogroup Entropy
@@ -51,9 +54,26 @@ float64_t arm_entropy_f64(const float64_t * pSrcA, uint32_t blockSize)
     float64_t accum, p;
  
     pIn = pSrcA;
-    blkCnt = blockSize;
+
 
     accum = 0.0;
+#if defined(ARM_MATH_NEON)
+  float64x2_t sumV ,pInV ;
+  sumV = vdupq_n_f64(0.0f);
+  blkCnt = blockSize >> 1U ;
+  
+  while(blkCnt > 0){
+    pInV = vld1q_f64(pIn);
+    sumV = vmlaq_f64(sumV, pInV,vlogq_f64(pInV) );
+    pIn += 2 ;
+    blkCnt--;
+    
+  }
+  accum = vaddvq_f64(sumV);
+  blkCnt = blockSize & 1 ;
+#else
+  blkCnt = blockSize;
+#endif
 
     while(blkCnt > 0)
     {
