@@ -44,7 +44,7 @@
  @param[out]    pResult    sum of the squares value returned here
  @return        none
  */
-#if defined(ARM_MATH_NEON_)
+#if defined(ARM_MATH_NEON)
 void arm_power_f64(
                    const float64_t * pSrc,
                    uint32_t blockSize,
@@ -53,8 +53,7 @@ void arm_power_f64(
     uint32_t blkCnt;                               /* Loop counter */
     float64_t sum = 0.;                          /* Temporary result storage */
     float64x2_t sumV ;                                 /* Temporary variable to store input value */
-    sumV = vsetq_lane_f64(0.0f, sumV, 0);
-    sumV = vsetq_lane_f64(0.0f, sumV, 1);
+    sumV = vdupq_n_f64(0.0f);
     float64x2_t pSrcV;
     
     /* Initialize blkCnt with number of samples */

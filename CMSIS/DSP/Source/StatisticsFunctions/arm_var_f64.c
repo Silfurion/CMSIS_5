@@ -76,7 +76,6 @@ void arm_var_f64(
         pInputV = vld1q_f64(pInput);
         fValueV = vsubq_f64(pInputV, fMeanV);
         fsumV = vmlaq_f64(fsumV, fValueV, fValueV);
-        
         pInput += 2 ;
         blkCnt--;
     }

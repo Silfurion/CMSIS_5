@@ -71,7 +71,7 @@ void arm_mse_f64(
         inBV = vld1q_f64(pSrcB);
         pSrcB+=2;
         subV = vsubq_f64(inAV, inBV);
-        sumV = vaddq_f64(sumV, vmulq_f64(subV, subV));
+        sumV = vmlaq_f64(sumV, subV, subV);
         
         blkCnt--;
         

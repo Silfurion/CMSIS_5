@@ -45,7 +45,7 @@
  @param[out]    pResult    maximum value returned here
  @return        none
  */
-#if defined(ARM_MATH_NEON_)
+#if defined(ARM_MATH_NEON)
 void arm_max_no_idx_f64(
                            const float64_t * pSrc,
                            uint32_t blockSize,
@@ -58,7 +58,7 @@ void arm_max_no_idx_f64(
     float64x2_t pSrcV ;
     pSrcV = vld1q_f64(pSrc);
     pSrc += 2 ;
-    maxV = vabsq_f64(pSrcV);
+    maxV = pSrcV;
     
     
     

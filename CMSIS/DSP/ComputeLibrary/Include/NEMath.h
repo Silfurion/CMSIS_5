@@ -313,7 +313,7 @@ inline float64x2_t vexpq_f64(float64x2_t x)
     static const float64_t CONST_LN2[2]          = { 0.6931471805f ,0.6931471805f}; // ln(2)
     static const float64_t CONST_INV_LN2[2]      = {1.4426950408f,1.4426950408f}; // 1/ln(2)
     static const float64_t CONST_0[2]            = {0.f,0.f};
-    static const int64_t   CONST_NEGATIVE_126[2] = {-1022,-1022};
+    static const int64_t   CONST_NEGATIVE_1022[2] = {-1022,-1022};
 
     //[-log(2),log(2)]
     int64x2_t   m   = vcvtq_s64_f64(vmulq_f64(x, vld1q_f64(CONST_INV_LN2)));
@@ -324,7 +324,7 @@ inline float64x2_t vexpq_f64(float64x2_t x)
 
     // Reconstruct
     poly = vreinterpretq_f64_s64(vqaddq_s64(vreinterpretq_s64_f64(poly), vqshlq_n_s64(m,52)));
-    poly = vbslq_f64(vcltq_s64(m, vld1q_s64(CONST_NEGATIVE_126)), vld1q_f64(CONST_0), poly);
+    poly = vbslq_f64(vcltq_s64(m, vld1q_s64(CONST_NEGATIVE_1022)), vld1q_f64(CONST_0), poly);
     return poly;
 }
 

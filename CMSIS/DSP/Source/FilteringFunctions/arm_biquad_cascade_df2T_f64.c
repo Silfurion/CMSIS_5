@@ -149,7 +149,7 @@ void arm_biquad_cascade_df2T_f64(
                 (float64_t const *) S->pCoeffs;
     float64x2_t b0Coeffs, a0Coeffs;           /*  Coefficients vector       */
     float64x2_t state;                        /*  State vector*/
-    float64x2_t d2Alone ;
+    float64x2_t CompilerOpti ;
     //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 0);
     //d2Alone = vsetq_lane_f64(0.0f, d2Alone, 1);
     
@@ -201,7 +201,7 @@ void arm_biquad_cascade_df2T_f64(
             state = vfmaq_n_f64(state, b0Coeffs, Xn0);
             state = vfmaq_n_f64(state, a0Coeffs, acc0);
                     	
-            //state = vaddq_f64(state, d2Alone);
+            //state = vaddq_f64(state, CompilerOpti);
             *pOut++ = acc0 ;
             sample--;
         }

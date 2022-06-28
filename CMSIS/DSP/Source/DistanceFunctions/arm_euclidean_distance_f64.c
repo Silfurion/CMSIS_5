@@ -50,12 +50,31 @@
 float64_t arm_euclidean_distance_f64(const float64_t *pA,const float64_t *pB, uint32_t blockSize)
 {
    float64_t accum=0.,tmp;
-
-   while(blockSize > 0)
+  uint32_t blkCnt;
+#if defined(ARM_MATH_NEON_)
+  float64x2_t accumV,tmpV , pAV ,pBV;
+  accumV = vdupq_n_f64(0.0f);
+  blkCnt = blockSize >> 1U;
+  while(blkCnt > 0U)
+  {
+    pAV = vld1q_f64(pA);
+    pBV = vld1q_f64(pB);
+    tmpV = vsubq_f64(pAV, pBV);
+    accumV = vmlaq_f64(accumV, tmpV, tmpV);
+    pA+=2;
+    pB+=2;
+    blkCnt--;
+  }
+  accum = vaddvq_f64(accumV);
+  blkCnt = blockSize & 1;
+#else
+  blkCnt = blockSize;
+#endif
+   while(blkCnt > 0)
    {
       tmp = *pA++ - *pB++;
       accum += SQ(tmp);
-      blockSize --;
+      blkCnt --;
    }
    tmp = sqrt(accum);
    return(tmp);

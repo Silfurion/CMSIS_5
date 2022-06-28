@@ -78,8 +78,7 @@ void arm_fir_f64(
 
     /* Set the accumulator to zero */
     acc0 = 0.;
-    acc0V = vsetq_lane_f64(0.0f, acc0V, 0);
-    acc0V = vsetq_lane_f64(0.0f, acc0V, 1);
+    acc0V = vdupq_n_f64(0.0f);
 
     /* Initialize state pointer */
     px = pState;
